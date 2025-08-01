@@ -22,12 +22,19 @@ export default function Home() {
         audio={false}
         ref={webcamRef}
         screenshotFormat="image/jpeg"
-        width={1280}
+        width={'100%'}
         videoConstraints={{ width: 1280, height: 720, facingMode: "user" }}
       />
       <button onClick={capture}>사진 찍기</button>
       {imgSrc && (
-        <Image src={imgSrc} alt="Captured" width={1280} height={720} />
+        <Image
+          src={imgSrc}
+          alt="Captured"
+          width={0}
+          height={0}
+          sizes={"100vw"}
+          style={{ width: "100%", height: "100%" }}
+        />
       )}
     </div>
   );
