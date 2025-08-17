@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
+import Image from "next/image";
+import React, { useRef, useCallback, useState } from "react";
+import Webcam from "react-webcam";
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
@@ -96,12 +97,17 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-const Home = () => {
-  const router = useRouter();
+const Camera = () => {
+  const webcamRef = useRef<Webcam>(null);
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
 
-  const handleFrameChoice = () => {
-    router.push("/selectFrame");
-  };
+  const capture = useCallback(() => {
+    // ref.current가 있는지 확인 후 스크린샷 함수 호출
+    if (webcamRef.current) {
+      const imageSrc = webcamRef.current.getScreenshot();
+      setImgSrc(imageSrc);
+    }
+  }, [webcamRef]);
 
   return (
     <main style={styles.container}>
@@ -109,20 +115,37 @@ const Home = () => {
         <h1 style={styles.title}>바다의 인생네컷</h1>
       </div>
       <div style={styles.contentContainer}>
-        <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={handleFrameChoice}>
-            사진 촬영하기
-          </button>
-          <button
-            style={styles.button}
-            onClick={() => alert("갤러리 기능은 준비 중입니다.")}
-          >
-            갤러리 불러오기
-          </button>
+        <h2 style={styles.subtitle}>사진 촬영</h2>
+        <div style={styles.webcamContainer}>
+          {imgSrc ? (
+            <Image
+              src={imgSrc}
+              alt="Captured"
+              layout="fill"
+              objectFit="cover"
+            />
+          ) : (
+            <Webcam
+              audio={false}
+              ref={webcamRef}
+              screenshotFormat="image/jpeg"
+              videoConstraints={{ facingMode: "user", aspectRatio: 1 }}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          )}
         </div>
+        {imgSrc ? (
+          <button style={styles.captureButton} onClick={() => setImgSrc(null)}>
+            다시 찍기
+          </button>
+        ) : (
+          <button style={styles.captureButton} onClick={capture}>
+            사진 찍기
+          </button>
+        )}
       </div>
     </main>
   );
 };
 
-export default Home;
+export default Camera;

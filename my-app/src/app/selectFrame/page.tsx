@@ -96,11 +96,11 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-const Home = () => {
+const SelectFrame = () => {
   const router = useRouter();
 
-  const handleFrameChoice = () => {
-    router.push("/selectFrame");
+  const handleCamera = () => {
+    router.push("/camera");
   };
 
   return (
@@ -109,20 +109,48 @@ const Home = () => {
         <h1 style={styles.title}>바다의 인생네컷</h1>
       </div>
       <div style={styles.contentContainer}>
-        <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={handleFrameChoice}>
-            사진 촬영하기
-          </button>
-          <button
-            style={styles.button}
-            onClick={() => alert("갤러리 기능은 준비 중입니다.")}
-          >
-            갤러리 불러오기
-          </button>
+        <h2 style={styles.subtitle}>프레임 선택</h2>
+        <div style={styles.frameSelectionContainer}>
+          {/* 1x4 프레임 옵션 */}
+          <div style={styles.frameOption} onClick={handleCamera}>
+            <div
+              style={{
+                ...styles.frameVisual,
+                gridTemplateRows: "repeat(4, 1fr)",
+                gap: "2px",
+                width: "32px",
+                height: "134px",
+              }}
+            >
+              <div style={styles.frameBox}></div>
+              <div style={styles.frameBox}></div>
+              <div style={styles.frameBox}></div>
+              <div style={styles.frameBox}></div>
+            </div>
+            <p>1x4</p>
+          </div>
+          {/* 2x2 프레임 옵션 */}
+          <div style={styles.frameOption} onClick={handleCamera}>
+            <div
+              style={{
+                ...styles.frameVisual,
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: "2px",
+                width: "64px",
+                height: "64px",
+              }}
+            >
+              <div style={styles.frameBox}></div>
+              <div style={styles.frameBox}></div>
+              <div style={styles.frameBox}></div>
+              <div style={styles.frameBox}></div>
+            </div>
+            <p>2x2</p>
+          </div>
         </div>
       </div>
     </main>
   );
 };
 
-export default Home;
+export default SelectFrame;
