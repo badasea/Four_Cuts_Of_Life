@@ -100,11 +100,22 @@ const SelectFrame = () => {
   const router = useRouter();
 
   const handleSelectFrame = (frameType: "1x4" | "2x2") => {
-    // 1. Session Storage에 선택한 프레임 정보 저장
+    // 1. 선택한 프레임 정보 저장
     sessionStorage.setItem("selectedFrame", frameType);
 
-    // 2. 촬영 페이지로 이동
-    router.push("/takePhoto");
+    // 2. 어떤 모드였는지 세션에서 확인
+    const mode = sessionStorage.getItem("photoMode");
+
+    // 3. 모드에 따라 다른 페이지로 이동
+    if (mode === "camera") {
+      router.push("/takePhoto");
+    } else if (mode === "gallery") {
+      router.push("/selectFromGallery");
+    } else {
+      // 예외 처리
+      alert("모드를 선택하지 않았습니다. 홈으로 이동합니다.");
+      router.push("/");
+    }
   };
 
   return (

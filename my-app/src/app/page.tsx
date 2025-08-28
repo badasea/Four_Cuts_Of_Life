@@ -99,7 +99,11 @@ const styles: { [key: string]: React.CSSProperties } = {
 const Home = () => {
   const router = useRouter();
 
-  const handleFrameChoice = () => {
+  // '사진 촬영' 또는 '갤러리' 선택을 처리하는 함수
+  const handleModeSelect = (mode: "camera" | "gallery") => {
+    // 어떤 모드를 선택했는지 세션에 저장
+    sessionStorage.setItem("photoMode", mode);
+    // 프레임 선택 페이지로 이동
     router.push("/selectFrame");
   };
 
@@ -110,13 +114,13 @@ const Home = () => {
       </div>
       <div style={styles.contentContainer}>
         <div style={styles.buttonContainer}>
-          <button style={styles.button} onClick={handleFrameChoice}>
-            사진 촬영하기
-          </button>
           <button
             style={styles.button}
-            onClick={() => alert("갤러리 기능은 준비 중입니다.")}
+            onClick={() => handleModeSelect("camera")}
           >
+            사진 촬영하기
+          </button>
+          <button style={styles.button} onClick={() => handleModeSelect('gallery')}>
             갤러리 불러오기
           </button>
         </div>
