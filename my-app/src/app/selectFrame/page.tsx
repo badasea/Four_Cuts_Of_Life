@@ -99,8 +99,12 @@ const styles: { [key: string]: React.CSSProperties } = {
 const SelectFrame = () => {
   const router = useRouter();
 
-  const handleCamera = () => {
-    router.push("/camera");
+  const handleSelectFrame = (frameType: "1x4" | "2x2") => {
+    // 1. Session Storage에 선택한 프레임 정보 저장
+    sessionStorage.setItem("selectedFrame", frameType);
+
+    // 2. 촬영 페이지로 이동
+    router.push("/takePhoto");
   };
 
   return (
@@ -112,7 +116,10 @@ const SelectFrame = () => {
         <h2 style={styles.subtitle}>프레임 선택</h2>
         <div style={styles.frameSelectionContainer}>
           {/* 1x4 프레임 옵션 */}
-          <div style={styles.frameOption} onClick={handleCamera}>
+          <div
+            style={styles.frameOption}
+            onClick={() => handleSelectFrame("1x4")}
+          >
             <div
               style={{
                 ...styles.frameVisual,
@@ -130,7 +137,10 @@ const SelectFrame = () => {
             <p>1x4</p>
           </div>
           {/* 2x2 프레임 옵션 */}
-          <div style={styles.frameOption} onClick={handleCamera}>
+          <div
+            style={styles.frameOption}
+            onClick={() => handleSelectFrame("2x2")}
+          >
             <div
               style={{
                 ...styles.frameVisual,

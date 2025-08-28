@@ -1,7 +1,6 @@
 import Image from "next/image";
-import React from "react";
+import React, { forwardRef } from "react";
 
-// 이 컴포넌트가 받을 props의 타입을 정의합니다.
 interface PreviewFrameProps {
   frame: "1x4" | "2x2";
   selectedImages: string[];
@@ -22,14 +21,12 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "1px solid #444",
     boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
   },
-  // 1x4 프레임 스타일 (Flexbox 사용)
   frame1x4: {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
     width: "150px",
   },
-  // 2x2 프레임 스타일 (Grid 사용)
   frame2x2: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
@@ -55,38 +52,38 @@ const styles: { [key: string]: React.CSSProperties } = {
   },
 };
 
-export default function PreviewFrameForm({
-  frame,
-  selectedImages,
-  onRetake,
-  onConfirm,
-}: PreviewFrameProps) {
-  // frame 값에 따라 동적으로 스타일을 결정합니다.
-  const frameStyle = frame === "1x4" ? styles.frame1x4 : styles.frame2x2;
+const PreviewFrameForm = forwardRef<HTMLDivElement, PreviewFrameProps>(
+  ({ frame, selectedImages, onRetake, onConfirm }, ref) => {
+    const frameStyle = frame === "1x4" ? styles.frame1x4 : styles.frame2x2;
 
-  return (
-    <div style={styles.container}>
-      <h2>최종 미리보기</h2>
-      <div style={{ ...styles.frameWrapper, ...frameStyle }}>
-        {selectedImages.map((src, index) => (
-          <div key={index} style={styles.imageContainer}>
-            <Image
-              src={src}
-              alt={`selected photo ${index + 1}`}
-              layout="fill"
-              objectFit="cover"
-            />
-          </div>
-        ))}
+    return (
+      <div style={styles.container}>
+        <h2>최종 미리보기</h2>
+        {/* ✨ ref를 이 div로 옮겨서 사진 프레임만 캡처하도록 수정 */}
+        <div ref={ref} style={{ ...styles.frameWrapper, ...frameStyle }}>
+          {selectedImages.map((src, index) => (
+            <div key={index} style={styles.imageContainer}>
+              <Image
+                src={src}
+                alt={`selected photo ${index + 1}`}
+                layout="fill"
+                objectFit="cover"
+              />
+            </div>
+          ))}
+        </div>
+        <div style={styles.buttonGroup}>
+          <button style={styles.button} onClick={onRetake}>
+            다시 고르기
+          </button>
+          <button style={styles.button} onClick={onConfirm}>
+            확정
+          </button>
+        </div>
       </div>
-      <div style={styles.buttonGroup}>
-        <button style={styles.button} onClick={onRetake}>
-          다시 고르기
-        </button>
-        <button style={styles.button} onClick={onConfirm}>
-          확정
-        </button>
-      </div>
-    </div>
-  );
-}
+    );
+  }
+);
+
+PreviewFrameForm.displayName = "PreviewFrameForm";
+export default PreviewFrameForm;

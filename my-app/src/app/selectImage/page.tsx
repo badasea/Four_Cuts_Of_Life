@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import React, { useRef, useCallback, useState, useEffect } from "react";
-import Webcam from "react-webcam";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-// 간단한 스타일 객체 (일부 스타일 추가)
+// 이 페이지에서 사용하는 스타일만 남겼습니다.
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: "flex",
@@ -45,12 +45,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     minHeight: "400px",
     position: "relative",
   },
-  buttonContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-    width: "80%",
-  },
   button: {
     padding: "15px",
     fontSize: "18px",
@@ -58,39 +52,6 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "2px solid black",
     backgroundColor: "white",
     width: "100%",
-  },
-  // ... 기존 스타일 생략 ...
-  webcamContainer: {
-    width: "100%",
-    maxWidth: "400px",
-    aspectRatio: "1 / 1",
-    border: "2px solid black",
-    position: "relative",
-    overflow: "hidden",
-    backgroundColor: "black",
-  },
-  countdownOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "10rem",
-    color: "white",
-    textShadow: "0 0 15px rgba(0,0,0,0.7)",
-  },
-  shotCounter: {
-    position: "absolute",
-    top: "10px",
-    right: "10px",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    color: "white",
-    padding: "5px 10px",
-    borderRadius: "5px",
-    fontSize: "16px",
   },
   photoGrid: {
     display: "grid",
@@ -106,91 +67,53 @@ const styles: { [key: string]: React.CSSProperties } = {
     aspectRatio: "1 / 1",
   },
   photoSelected: {
-    border: "3px solid #007bff",
-  },
-  previewFrame: {
-    display: "flex",
-    border: "2px solid black",
-    padding: "10px",
-    backgroundColor: "#eee",
+    border: "3px solid #007bff", // 선택되었을 때 파란색 테두리
   },
 };
 
-const TOTAL_SHOTS = 6; // 총 촬영할 사진 수
 const PHOTOS_TO_SELECT = 4; // 선택해야 할 사진 수
 
-export default function Home() {
-  const [step, setStep] = useState<number>(4);
-  const [frame, setFrame] = useState<"1x4" | "2x2" | null>(null);
-
-  const webcamRef = useRef<Webcam>(null);
+export default function SelectImage() {
+  const router = useRouter();
   const [capturedImages, setCapturedImages] = useState<string[]>([]);
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
 
-  const [isCapturing, setIsCapturing] = useState(false);
-  const [countdown, setCountdown] = useState<number>(0);
-
-  // --- 촬영 로직 ---
-  const capture = useCallback(() => {
-    if (webcamRef.current) {
-      const imageSrc = webcamRef.current.getScreenshot();
-      if (imageSrc) {
-        setCapturedImages((prev) => [...prev, imageSrc]);
-      }
-    }
-  }, [webcamRef]);
-
+  // 1. 페이지 로드 시 Session Storage에서 촬영된 이미지 불러오기
   useEffect(() => {
-    if (!isCapturing) return;
-
-    // 모든 샷을 촬영했으면 선택 화면으로 이동
-    if (capturedImages.length >= TOTAL_SHOTS) {
-      setIsCapturing(false);
-      setStep(5);
-      return;
+    const storedImagesJSON = sessionStorage.getItem("capturedImages");
+    if (storedImagesJSON) {
+      const storedImages = JSON.parse(storedImagesJSON);
+      setCapturedImages(storedImages);
+    } else {
+      // 촬영된 이미지가 없으면 촬영 페이지로 돌려보내기 (예외 처리)
+      alert("촬영된 사진이 없습니다. 사진 촬영 페이지로 이동합니다.");
+      router.push("/takePhoto");
     }
+  }, [router]);
 
-    // 카운트다운 로직
-    const countdownTimer = setInterval(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-
-    if (countdown === 0) {
-      clearInterval(countdownTimer);
-      capture(); // 사진 촬영
-      setTimeout(() => setCountdown(5), 500); // 다음 샷 준비
-    }
-
-    return () => clearInterval(countdownTimer);
-  }, [isCapturing, countdown, capturedImages, capture]);
-
-  const handleStartCapture = () => {
-    setCapturedImages([]);
-    setSelectedImages([]);
-    setIsCapturing(true);
-    setCountdown(5); // 5초 카운트다운 시작
-  };
-
-  // --- 사진 선택 로직 ---
+  // 2. 사진 선택/해제 로직
   const handleToggleSelectImage = (imageSrc: string) => {
     setSelectedImages((prev) => {
       if (prev.includes(imageSrc)) {
+        // 이미 선택된 사진이면 배열에서 제거 (선택 해제)
         return prev.filter((img) => img !== imageSrc);
       } else {
+        // 새로 선택하는 사진이면, 4장 미만일 때만 배열에 추가
         if (prev.length < PHOTOS_TO_SELECT) {
           return [...prev, imageSrc];
         }
       }
+      // 4장이 이미 꽉 찼으면, 현재 상태를 그대로 반환
       return prev;
     });
   };
 
-  // --- 화면 이동 함수 ---
-  const resetAndGoToStep = (stepNum: number) => {
-    setIsCapturing(false);
-    setCapturedImages([]);
-    setSelectedImages([]);
-    setStep(stepNum);
+  // 3. 선택 완료 로직
+  const handleConfirmSelection = () => {
+    // 선택된 4장의 이미지를 Session Storage에 저장
+    sessionStorage.setItem("selectedImages", JSON.stringify(selectedImages));
+    // 최종 미리보기 페이지로 이동
+    router.push("/previewFrame");
   };
 
   return (
@@ -224,8 +147,9 @@ export default function Home() {
         </div>
         <button
           style={{ ...styles.button, marginTop: "20px" }}
+          // 정확히 4장을 선택했을 때만 버튼 활성화
           disabled={selectedImages.length !== PHOTOS_TO_SELECT}
-          onClick={() => setStep(6)}
+          onClick={handleConfirmSelection}
         >
           선택 완료
         </button>
