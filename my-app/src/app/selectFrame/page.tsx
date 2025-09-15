@@ -2,62 +2,43 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image"; // Next.js Image 컴포넌트 사용
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    height: "100vh",
-    backgroundColor: "#f0f0f0",
+    width: "100%",
+    minHeight: "100vh",
+    backgroundColor: "#F3F3F3", // 피그마 디자인에 더 가까운 배경색
     padding: "20px",
     boxSizing: "border-box",
   },
-  header: {
-    position: "absolute",
-    top: "20px",
-    border: "2px solid black",
-    padding: "10px 20px",
-    backgroundColor: "white",
-  },
-  title: {
-    margin: 0,
-    fontSize: "24px",
-  },
-  subtitle: {
-    margin: "20px 0",
-    fontSize: "20px",
-  },
-  contentContainer: {
+  contentWrapper: {
+    width: "100%",
+    maxWidth: "400px", // 이전 페이지와 일관된 최대 너비
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    maxWidth: "500px",
-    backgroundColor: "white",
-    border: "2px solid black",
-    padding: "40px 20px",
-    minHeight: "400px",
+    gap: "30px", // 요소들 간의 간격 조정
+    paddingTop: "20px", // 상단 여백 추가
   },
-  buttonContainer: {
+  logoContainer: {
+    width: "120px", // 로고 이미지 크기 조절 (이전 페이지와 동일)
+  },
+  // "프레임 선택" 타이틀 이미지를 위한 컨테이너
+  selectFrameTitleContainer: {
+    width: "200px", // "프레임 선택" 이미지 너비에 맞춰 조절
+    height: "50px", // "프레임 선택" 이미지 높이에 맞춰 조절
     display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-    width: "80%",
-  },
-  button: {
-    padding: "15px",
-    fontSize: "18px",
-    cursor: "pointer",
-    border: "2px solid black",
-    backgroundColor: "white",
-    width: "100%",
+    justifyContent: "center",
+    alignItems: "center",
   },
   frameSelectionContainer: {
     display: "flex",
-    gap: "30px",
+    gap: "30px", // 프레임 옵션들 간의 간격
+    marginTop: "20px", // "프레임 선택" 타이틀과 프레임 옵션 사이 간격
   },
   frameOption: {
     display: "flex",
@@ -68,6 +49,8 @@ const styles: { [key: string]: React.CSSProperties } = {
     border: "2px solid black",
     cursor: "pointer",
     backgroundColor: "white",
+    borderRadius: "10px", // 프레임 옵션 박스 모서리 둥글게
+    boxShadow: "2px 2px 5px rgba(0,0,0,0.1)", // 그림자 추가
   },
   frameVisual: {
     display: "grid",
@@ -77,22 +60,7 @@ const styles: { [key: string]: React.CSSProperties } = {
     width: "30px",
     height: "30px",
     border: "1px solid #ccc",
-  },
-  webcamContainer: {
-    width: "100%",
-    maxWidth: "400px",
-    aspectRatio: "1 / 1",
-    border: "2px solid black",
-    position: "relative",
-    overflow: "hidden", // 이미지가 컨테이너를 벗어나지 않도록
-  },
-  captureButton: {
-    marginTop: "20px",
-    padding: "15px 30px",
-    fontSize: "18px",
-    cursor: "pointer",
-    border: "2px solid black",
-    backgroundColor: "white",
+    backgroundColor: "#eee", // 프레임 박스 내부 색상
   },
 };
 
@@ -100,19 +68,14 @@ const SelectFrame = () => {
   const router = useRouter();
 
   const handleSelectFrame = (frameType: "1x4" | "2x2") => {
-    // 1. 선택한 프레임 정보 저장
     sessionStorage.setItem("selectedFrame", frameType);
-
-    // 2. 어떤 모드였는지 세션에서 확인
     const mode = sessionStorage.getItem("photoMode");
 
-    // 3. 모드에 따라 다른 페이지로 이동
     if (mode === "camera") {
       router.push("/takePhoto");
     } else if (mode === "gallery") {
       router.push("/selectFromGallery");
     } else {
-      // 예외 처리
       alert("모드를 선택하지 않았습니다. 홈으로 이동합니다.");
       router.push("/");
     }
@@ -120,11 +83,31 @@ const SelectFrame = () => {
 
   return (
     <main style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>바다의 인생네컷</h1>
-      </div>
-      <div style={styles.contentContainer}>
-        <h2 style={styles.subtitle}>프레임 선택</h2>
+      <div style={styles.contentWrapper}>
+        {/* Header Section with the logo image */}
+        <div style={styles.logoContainer}>
+          <Image
+            src="/image/title.png" // public 폴더 기준 경로 (이전 페이지와 동일)
+            alt="iYS Logo"
+            width={120}
+            height={60}
+            layout="responsive"
+            priority
+          />
+        </div>
+
+        {/* "프레임 선택" 타이틀 이미지를 위한 컨테이너 */}
+        <div style={styles.selectFrameTitleContainer}>
+          <Image
+            src="/image/selectFrame/selectFrame.png" // "프레임 선택" 이미지 경로 (가칭)
+            alt="프레임 선택"
+            width={200} // 이미지의 실제 너비
+            height={50} // 이미지의 실제 높이
+            layout="intrinsic"
+          />
+        </div>
+
+        {/* 기존 프레임 선택 옵션 */}
         <div style={styles.frameSelectionContainer}>
           {/* 1x4 프레임 옵션 */}
           <div

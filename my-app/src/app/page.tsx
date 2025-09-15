@@ -2,126 +2,142 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image"; // Image 컴포넌트 계속 사용
 
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    height: "100vh",
-    backgroundColor: "#f0f0f0",
+    width: "100%",
+    minHeight: "100vh",
+    backgroundColor: "#F3F3F3",
     padding: "20px",
     boxSizing: "border-box",
   },
-  header: {
-    position: "absolute",
-    top: "20px",
-    border: "2px solid black",
-    padding: "10px 20px",
-    backgroundColor: "white",
-  },
-  title: {
-    margin: 0,
-    fontSize: "24px",
-  },
-  subtitle: {
-    margin: "20px 0",
-    fontSize: "20px",
-  },
-  contentContainer: {
+  contentWrapper: {
+    width: "100%",
+    maxWidth: "400px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    maxWidth: "500px",
-    backgroundColor: "white",
-    border: "2px solid black",
-    padding: "40px 20px",
-    minHeight: "400px",
+    gap: "20px",
   },
+  logoContainer: {
+    width: "120px", // 로고 이미지 크기 조절
+  },
+  studioTextContainer: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "10px", // 이미지들 사이의 간격
+    width: "100%",
+  },
+  // 이미지 버튼 컨테이너는 그대로 유지
   buttonContainer: {
     display: "flex",
     flexDirection: "column",
+    width: "100%",
     gap: "15px",
-    width: "80%",
+    marginTop: "10px",
   },
-  button: {
-    padding: "15px",
-    fontSize: "18px",
+  imageButton: {
     cursor: "pointer",
-    border: "2px solid black",
-    backgroundColor: "white",
+    border: "none",
+    background: "none",
+    padding: 0,
     width: "100%",
   },
-  frameSelectionContainer: {
+  // 새로운 스타일: 서브 텍스트 이미지를 위한 래퍼
+  subTextWrapper: {
+    flex: 1, // 이미지들이 공간을 고르게 차지하도록
     display: "flex",
-    gap: "30px",
-  },
-  frameOption: {
-    display: "flex",
-    flexDirection: "column",
+    justifyContent: "center",
     alignItems: "center",
-    gap: "10px",
-    padding: "20px",
-    border: "2px solid black",
-    cursor: "pointer",
-    backgroundColor: "white",
-  },
-  frameVisual: {
-    display: "grid",
-    border: "1px solid #ccc",
-  },
-  frameBox: {
-    width: "30px",
-    height: "30px",
-    border: "1px solid #ccc",
-  },
-  webcamContainer: {
-    width: "100%",
-    maxWidth: "400px",
-    aspectRatio: "1 / 1",
-    border: "2px solid black",
-    position: "relative",
-    overflow: "hidden", // 이미지가 컨테이너를 벗어나지 않도록
-  },
-  captureButton: {
-    marginTop: "20px",
-    padding: "15px 30px",
-    fontSize: "18px",
-    cursor: "pointer",
-    border: "2px solid black",
-    backgroundColor: "white",
+    height: "45px", // 피그마 디자인과 유사한 높이 유지
   },
 };
 
 const Home = () => {
   const router = useRouter();
 
-  // '사진 촬영' 또는 '갤러리' 선택을 처리하는 함수
   const handleModeSelect = (mode: "camera" | "gallery") => {
-    // 어떤 모드를 선택했는지 세션에 저장
     sessionStorage.setItem("photoMode", mode);
-    // 프레임 선택 페이지로 이동
     router.push("/selectFrame");
   };
 
   return (
     <main style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>바다의 인생네컷</h1>
-      </div>
-      <div style={styles.contentContainer}>
+      <div style={styles.contentWrapper}>
+        {/* Header Section with the new logo image */}
+        <div style={styles.logoContainer}>
+          <Image
+            src="/image/title.png" // public 폴더 기준 경로
+            alt="iYS Logo"
+            width={120}
+            height={60}
+            layout="responsive"
+            priority
+          />
+        </div>
+
+        {/* Text bubbles using the new image assets for "in Your Studio:" */}
+        <div style={styles.studioTextContainer}>
+          <div style={styles.subTextWrapper}>
+            <Image
+              src="/image/in.png" // "in" 이미지 경로 (예시)
+              alt="in"
+              width={80} // 이미지의 실제 너비
+              height={45} // 이미지의 실제 높이
+              layout="intrinsic" // 이미지 원래 비율 유지
+            />
+          </div>
+          <div style={styles.subTextWrapper}>
+            <Image
+              src="/image/your.png" // "Your" 이미지 경로 (예시)
+              alt="Your"
+              width={100} // 이미지의 실제 너비
+              height={45} // 이미지의 실제 높이
+              layout="intrinsic"
+            />
+          </div>
+          <div style={styles.subTextWrapper}>
+            <Image
+              src="/image/studio.png" // "Studio:" 이미지 경로 (예시)
+              alt="Studio:"
+              width={120} // 이미지의 실제 너비
+              height={45} // 이미지의 실제 높이
+              layout="intrinsic"
+            />
+          </div>
+        </div>
+
+        {/* Button Section (변경 없음) */}
         <div style={styles.buttonContainer}>
           <button
-            style={styles.button}
+            style={styles.imageButton}
             onClick={() => handleModeSelect("camera")}
           >
-            사진 촬영하기
+            <Image
+              src="/image/button1.png"
+              alt="Take photos"
+              width={500}
+              height={300}
+              layout="responsive"
+              priority
+            />
           </button>
-          <button style={styles.button} onClick={() => handleModeSelect('gallery')}>
-            갤러리 불러오기
+          <button
+            style={styles.imageButton}
+            onClick={() => handleModeSelect("gallery")}
+          >
+            <Image
+              src="/image/button2.png"
+              alt="Load photos from gallery"
+              width={500}
+              height={300}
+              layout="responsive"
+            />
           </button>
         </div>
       </div>
