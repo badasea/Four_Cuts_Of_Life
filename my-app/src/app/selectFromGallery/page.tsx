@@ -148,7 +148,7 @@ export default function SelectFromGallery() {
       return;
     }
     sessionStorage.setItem("selectedImages", JSON.stringify(finalImages));
-    router.push("/previewFrame");
+    router.push("/previewFrameGallery");
   };
 
   const handleGoToHome = () => {
