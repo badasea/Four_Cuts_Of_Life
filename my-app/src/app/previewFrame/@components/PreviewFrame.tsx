@@ -4,82 +4,75 @@ import React, { forwardRef } from "react";
 interface PreviewFrameProps {
   frame: "1x4" | "2x2";
   selectedImages: string[];
-  onRetake: () => void;
-  onConfirm: () => void;
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  container: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    padding: "20px",
-  },
-  frameWrapper: {
-    padding: "10px",
-    backgroundColor: "#333",
-    border: "1px solid #444",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.5)",
+  frameContainer: {
+    backgroundColor: "white",
+    padding: "12px",
+    display: "inline-block",
   },
   frame1x4: {
     display: "flex",
     flexDirection: "column",
     gap: "10px",
-    width: "150px",
+    width: "180px",
   },
   frame2x2: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "10px",
-    width: "310px",
+    width: "320px",
   },
-  imageContainer: {
+  imageWrapper: {
     position: "relative",
-    width: "130px",
-    height: "130px",
+    width: "100%",
+    aspectRatio: "1 / 1",
   },
-  buttonGroup: {
-    display: "flex",
-    gap: "10px",
-    marginTop: "20px",
-  },
-  button: {
-    padding: "10px 20px",
-    fontSize: "16px",
-    cursor: "pointer",
-    border: "2px solid black",
-    backgroundColor: "white",
+  logoInFrame: {
+    position: "relative",
+    width: "40px",
+    margin: "0 auto 10px",
   },
 };
 
 const PreviewFrameForm = forwardRef<HTMLDivElement, PreviewFrameProps>(
-  ({ frame, selectedImages, onRetake, onConfirm }, ref) => {
-    const frameStyle = frame === "1x4" ? styles.frame1x4 : styles.frame2x2;
+  ({ frame, selectedImages }, ref) => {
+    // 프레임 종류에 따라 컨테이너 스타일을 동적으로 결정
+    const containerStyle =
+      frame === "1x4"
+        ? { ...styles.frameContainer, ...styles.frame1x4 }
+        : { ...styles.frameContainer, ...styles.frame2x2 };
 
     return (
-      <div style={styles.container}>
-        <h2>최종 미리보기</h2>
-        {/* ✨ ref를 이 div로 옮겨서 사진 프레임만 캡처하도록 수정 */}
-        <div ref={ref} style={{ ...styles.frameWrapper, ...frameStyle }}>
-          {selectedImages.map((src, index) => (
-            <div key={index} style={styles.imageContainer}>
-              <Image
-                src={src}
-                alt={`selected photo ${index + 1}`}
-                layout="fill"
-                objectFit="cover"
-              />
-            </div>
-          ))}
+      <div ref={ref} style={containerStyle}>
+        {/* 로고를 항상 렌더링 */}
+        <div
+          style={{
+            ...styles.logoInFrame,
+            // 2x2 프레임일 경우, 로고가 그리드의 모든 열을 차지하도록 설정
+            ...(frame === "2x2" ? { gridColumn: "1 / -1" } : {}),
+          }}
+        >
+          <Image
+            src="/image/title.png"
+            alt="iYS Logo"
+            width={40}
+            height={20}
+            layout="responsive"
+          />
         </div>
-        <div style={styles.buttonGroup}>
-          <button style={styles.button} onClick={onRetake}>
-            다시 고르기
-          </button>
-          <button style={styles.button} onClick={onConfirm}>
-            확정
-          </button>
-        </div>
+
+        {selectedImages.map((src, index) => (
+          <div key={index} style={styles.imageWrapper}>
+            <Image
+              src={src}
+              alt={`selected photo ${index + 1}`}
+              layout="fill"
+              objectFit="cover"
+            />
+          </div>
+        ))}
       </div>
     );
   }

@@ -3,77 +3,94 @@
 import React, { useRef, useCallback, useState, useEffect } from "react";
 import Webcam from "react-webcam";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
-// 스타일 객체는 이전과 동일합니다.
+// --- 카운트다운 숫자와 이미지 경로를 매핑하는 객체 ---
+const countdownImages: { [key: number]: string } = {
+  5: "/image/takePhoto/5.png",
+  4: "/image/takePhoto/4.png",
+  3: "/image/takePhoto/3.png",
+  2: "/image/takePhoto/2.png",
+  1: "/image/takePhoto/1.png",
+};
+
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    height: "100vh",
-    backgroundColor: "#f0f0f0",
+    justifyContent: "space-between",
+    width: "100%",
+    minHeight: "100vh",
+    backgroundColor: "#F3F3F3",
     padding: "20px",
     boxSizing: "border-box",
-    fontFamily: "sans-serif",
   },
-  header: {
-    position: "absolute",
-    top: "20px",
-    border: "2px solid black",
-    padding: "10px 20px",
-    backgroundColor: "white",
-  },
-  title: {
-    margin: 0,
-    fontSize: "24px",
-  },
-  subtitle: {
-    margin: "20px 0",
-    fontSize: "20px",
-  },
-  contentContainer: {
+  topContentWrapper: {
+    width: "100%",
+    maxWidth: "400px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    maxWidth: "500px",
-    backgroundColor: "white",
-    border: "2px solid black",
-    padding: "40px 20px",
-    minHeight: "400px",
-    position: "relative",
+    gap: "20px",
   },
-  button: {
-    padding: "15px",
-    fontSize: "18px",
-    cursor: "pointer",
-    border: "2px solid black",
-    backgroundColor: "white",
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
     width: "100%",
+  },
+  logoContainer: {
+    width: "80px",
+  },
+  titleContainer: {
+    width: "150px",
   },
   webcamContainer: {
     width: "100%",
-    maxWidth: "400px",
     aspectRatio: "1 / 1",
-    border: "2px solid black",
     position: "relative",
     overflow: "hidden",
     backgroundColor: "black",
+    borderRadius: "12px",
   },
-  countdownOverlay: {
+  crosshair: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "10rem",
-    color: "white",
-    textShadow: "0 0 15px rgba(0,0,0,0.7)",
+    top: "50%",
+    left: "50%",
+    width: "30px",
+    height: "30px",
+    transform: "translate(-50%, -50%)",
+  },
+  crosshairHorizontal: {
+    position: "absolute",
+    top: "50%",
+    left: "0",
+    right: "0",
+    height: "2px",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    transform: "translateY(-50%)",
+  },
+  crosshairVertical: {
+    position: "absolute",
+    left: "50%",
+    top: "0",
+    bottom: "0",
+    width: "2px",
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    transform: "translateX(-50%)",
+  },
+  // --- 이 부분 수정 ---
+  countdownImageContainer: {
+    position: "absolute",
+    // top 대신 bottom 기준으로 위치 설정
+    bottom: "20px",
+    left: "50%",
+    // Y축 transform 제거하고 X축만 중앙 정렬
+    transform: "translateX(-50%)",
+    // 크기 조절
+    width: "50px",
+    height: "50px",
   },
   shotCounter: {
     position: "absolute",
@@ -84,6 +101,35 @@ const styles: { [key: string]: React.CSSProperties } = {
     padding: "5px 10px",
     borderRadius: "5px",
     fontSize: "16px",
+  },
+  buttonContainer: {
+    width: "100%",
+    maxWidth: "400px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "10px",
+  },
+  primaryButton: {
+    width: "100%",
+    padding: "15px",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "18px",
+    fontWeight: "bold",
+    backgroundColor: "#E92823",
+    color: "white",
+    cursor: "pointer",
+  },
+  secondaryButton: {
+    width: "100%",
+    padding: "15px",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "18px",
+    fontWeight: "bold",
+    backgroundColor: "#ECECEC",
+    color: "#A0A0A0",
+    cursor: "pointer",
   },
 };
 
@@ -97,17 +143,15 @@ export default function TakePhoto() {
   const [countdown, setCountdown] = useState<number>(0);
   const router = useRouter();
 
-  // 페이지가 처음 로드될 때 Session Storage에서 프레임 정보를 불러옵니다.
+  // 비즈니스 로직은 이전과 동일하게 유지
   useEffect(() => {
     const storedFrame = sessionStorage.getItem("selectedFrame");
     if (storedFrame === "1x4" || storedFrame === "2x2") {
       setFrame(storedFrame);
     }
-    // 페이지 진입 시 이전 촬영 기록은 삭제합니다.
     sessionStorage.removeItem("capturedImages");
   }, []);
 
-  // --- 촬영 로직 (수정됨) ---
   const capture = useCallback(() => {
     if (webcamRef.current) {
       const imageSrc = webcamRef.current.getScreenshot();
@@ -115,12 +159,9 @@ export default function TakePhoto() {
         setCapturedImages((prev) => {
           const newImages = [...prev, imageSrc];
           sessionStorage.setItem("capturedImages", JSON.stringify(newImages));
-
-          // ✨ 역할 변경: 모든 사진을 촬영했는지 여기서 최종 확인합니다.
           if (newImages.length >= TOTAL_SHOTS) {
-            setIsCapturing(false); // 촬영 프로세스를 중단시킵니다.
+            setIsCapturing(false);
           }
-
           return newImages;
         });
       }
@@ -128,38 +169,24 @@ export default function TakePhoto() {
   }, [webcamRef, router]);
 
   useEffect(() => {
-    // 촬영이 중단되었고, 사진이 6장 모두 준비되었을 때만 실행
     if (!isCapturing && capturedImages.length >= TOTAL_SHOTS) {
-      // 모든 렌더링이 끝난 후 안전하게 페이지 이동
       router.push("/selectImage");
     }
   }, [isCapturing, capturedImages, router]);
 
-  // --- 타이머 로직 (수정됨) ---
   useEffect(() => {
-    // 촬영 중 상태가 아니면 타이머 로직을 실행하지 않습니다.
     if (!isCapturing) return;
-
-    // 카운트다운 타이머를 설정합니다.
     const countdownTimer = setInterval(() => {
       setCountdown((prev) => prev - 1);
     }, 1000);
-
-    // 카운트다운이 0이 되면 사진을 찍고, 다음 촬영을 위해 타이머를 리셋합니다.
     if (countdown === 0) {
       clearInterval(countdownTimer);
       capture();
-
-      // 마지막 촬영 직후에는 카운트다운을 리셋할 필요가 없습니다.
       if (capturedImages.length < TOTAL_SHOTS - 1) {
         setTimeout(() => setCountdown(5), 500);
       }
     }
-
-    // 클린업 함수: 이 useEffect가 다시 실행되기 전에 항상 이전 타이머를 정리합니다.
     return () => clearInterval(countdownTimer);
-
-    // ✨ 역할 변경: 의존성 배열에서 capturedImages.length를 제거하여 불필요한 재실행을 막습니다.
   }, [isCapturing, countdown, capture]);
 
   const handleStartCapture = () => {
@@ -175,11 +202,28 @@ export default function TakePhoto() {
 
   return (
     <main style={styles.container}>
-      <div style={styles.header}>
-        <h1 style={styles.title}>바다의 인생네컷</h1>
-      </div>
-      <div style={styles.contentContainer}>
-        <h2 style={styles.subtitle}>사진 촬영</h2>
+      <div style={styles.topContentWrapper}>
+        <div style={styles.header}>
+          <div style={styles.logoContainer}>
+            <Image
+              src="/image/title.png"
+              alt="iYS Logo"
+              width={80}
+              height={40}
+              layout="responsive"
+            />
+          </div>
+          <div style={styles.titleContainer}>
+            <Image
+              src="/image/takePhoto/takephoto.png"
+              alt="사진 촬영"
+              width={150}
+              height={40}
+              layout="responsive"
+            />
+          </div>
+        </div>
+
         <div style={styles.webcamContainer}>
           <Webcam
             audio={false}
@@ -188,31 +232,46 @@ export default function TakePhoto() {
             videoConstraints={{ facingMode: "user", aspectRatio: 1 }}
             style={{ width: "100%", height: "100%", objectFit: "cover" }}
           />
+          <div style={styles.crosshair}>
+            <div style={styles.crosshairVertical}></div>
+            <div style={styles.crosshairHorizontal}></div>
+          </div>
           {isCapturing && (
             <div style={styles.shotCounter}>
-              {/* 사용자가 보기 편하도록 +1을 해줍니다. */}
               {capturedImages.length + 1} / {TOTAL_SHOTS}
             </div>
           )}
-          {isCapturing && countdown > 0 && (
-            <div style={styles.countdownOverlay}>{countdown}</div>
+          {isCapturing && countdown > 0 && countdownImages[countdown] && (
+            <div style={styles.countdownImageContainer}>
+              <Image
+                src={countdownImages[countdown]}
+                alt={`Countdown ${countdown}`}
+                layout="fill"
+                objectFit="contain"
+                priority
+              />
+            </div>
           )}
         </div>
+      </div>
+
+      <div style={styles.buttonContainer}>
         {!isCapturing ? (
-          <button style={styles.button} onClick={handleStartCapture}>
-            촬영 시작 ({TOTAL_SHOTS}장)
+          <button style={styles.primaryButton} onClick={handleStartCapture}>
+            촬영 시작
           </button>
         ) : (
-          <p style={{ marginTop: "20px" }}>촬영 중입니다...</p>
+          <button
+            style={{
+              ...styles.primaryButton,
+              cursor: "not-allowed",
+              backgroundColor: "#F08080",
+            }}
+          >
+            촬영 중... ({capturedImages.length + 1} / {TOTAL_SHOTS})
+          </button>
         )}
-        <button
-          style={{
-            ...styles.button,
-            backgroundColor: "#eee",
-            marginTop: "10px",
-          }}
-          onClick={handleGoToHome}
-        >
+        <button style={styles.secondaryButton} onClick={handleGoToHome}>
           처음으로
         </button>
       </div>

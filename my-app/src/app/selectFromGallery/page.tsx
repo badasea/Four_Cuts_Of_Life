@@ -4,55 +4,51 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// 스타일 객체
+// --- 새로운 디자인에 맞춘 스타일 객체 ---
 const styles: { [key: string]: React.CSSProperties } = {
   container: {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    height: "100vh",
-    backgroundColor: "#f0f0f0",
+    justifyContent: "space-between",
+    width: "100%",
+    minHeight: "100vh",
+    backgroundColor: "#F3F3F3",
+    padding: "20px",
+    boxSizing: "border-box",
   },
-  header: {
-    position: "absolute",
-    top: "20px",
-    border: "2px solid black",
-    padding: "10px 20px",
-    backgroundColor: "white",
-  },
-  title: { margin: 0, fontSize: "24px" },
-  contentContainer: {
+  topContentWrapper: {
+    width: "100%",
+    maxWidth: "400px",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    maxWidth: "500px",
-    backgroundColor: "white",
-    border: "2px solid black",
-    padding: "40px 20px",
-    minHeight: "400px",
+    gap: "20px",
   },
-  subtitle: { margin: "20px 0", fontSize: "20px" },
-  button: {
-    marginTop: "20px",
-    padding: "15px",
-    fontSize: "18px",
-    cursor: "pointer",
-    border: "2px solid black",
-    backgroundColor: "white",
-    width: "80%",
+  header: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+  },
+  logoContainer: {
+    width: "80px",
+  },
+  titleContainer: {
+    width: "150px",
   },
   photoGrid: {
     display: "grid",
     gridTemplateColumns: "repeat(2, 1fr)",
     gap: "15px",
+    width: "100%",
+    padding: "10px",
   },
   slot: {
-    width: "150px",
-    height: "150px",
-    border: "2px dashed #ccc",
+    width: "100%",
+    aspectRatio: "1 / 1",
+    backgroundColor: "#EAEAEA",
+    borderRadius: "12px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -60,20 +56,61 @@ const styles: { [key: string]: React.CSSProperties } = {
     position: "relative",
     overflow: "hidden",
   },
-  plusIcon: { fontSize: "50px", color: "#ccc" },
+  plusIcon: {
+    fontSize: "50px",
+    color: "#B0B0B0",
+    fontWeight: "300",
+  },
+  buttonContainer: {
+    width: "100%",
+    maxWidth: "400px",
+    display: "flex",
+    flexDirection: "row",
+    gap: "10px",
+  },
+  primaryButton: {
+    flex: 1,
+    padding: "15px",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "18px",
+    fontWeight: "bold",
+    backgroundColor: "#E92823",
+    color: "white",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+  },
+  secondaryButton: {
+    flex: 1,
+    padding: "15px",
+    border: "none",
+    borderRadius: "8px",
+    fontSize: "18px",
+    fontWeight: "bold",
+    backgroundColor: "#ECECEC",
+    color: "#A0A0A0",
+    cursor: "pointer",
+  },
+  disabledButton: {
+    backgroundColor: "#ECECEC",
+    color: "#A0A0A0",
+    cursor: "not-allowed",
+  },
 };
 
 const TOTAL_SLOTS = 4;
-const MAX_WIDTH_OR_HEIGHT = 800; // 리사이징 될 이미지의 최대 가로/세로 크기
+const MAX_WIDTH_OR_HEIGHT = 800;
 
 export default function SelectFromGallery() {
   const router = useRouter();
+  // --- 기존 비즈니스 로직 (State, Ref) - 변경 없음 ---
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [images, setImages] = useState<(string | null)[]>(
     Array(TOTAL_SLOTS).fill(null)
   );
   const [currentSlot, setCurrentSlot] = useState<number | null>(null);
 
+  // --- 기존 비즈니스 로직 (useEffect, 핸들러) - 변경 없음 ---
   useEffect(() => {
     if (!sessionStorage.getItem("selectedFrame")) {
       alert("프레임이 선택되지 않았습니다. 이전 페이지로 돌아갑니다.");
@@ -91,7 +128,6 @@ export default function SelectFromGallery() {
   ) => {
     const file = event.target.files?.[0];
     if (!file || currentSlot === null) return;
-
     try {
       const resizedImage = await resizeImage(file);
       const newImages = [...images];
@@ -101,21 +137,29 @@ export default function SelectFromGallery() {
       console.error(error);
       alert("이미지 처리 중 오류가 발생했습니다.");
     }
-
-    // 같은 파일을 다시 선택할 수 있도록 입력 값을 비워줍니다.
     event.target.value = "";
   };
 
   const handleConfirm = () => {
     const finalImages = images.filter((img) => img !== null) as string[];
+    // 4장이 채워졌는지 한번 더 확인
+    if (finalImages.length !== TOTAL_SLOTS) {
+      alert("4장의 사진을 모두 채워주세요.");
+      return;
+    }
     sessionStorage.setItem("selectedImages", JSON.stringify(finalImages));
     router.push("/previewFrame");
+  };
+
+  const handleGoToHome = () => {
+    router.push("/");
   };
 
   const isAllSlotsFilled = images.every((image) => image !== null);
 
   return (
     <main style={styles.container}>
+      {/* 파일 입력을 위한 숨겨진 input 요소 */}
       <input
         type="file"
         ref={fileInputRef}
@@ -123,11 +167,30 @@ export default function SelectFromGallery() {
         accept="image/*"
         style={{ display: "none" }}
       />
-      <div style={styles.header}>
-        <h1 style={styles.title}>바다의 인생네컷</h1>
-      </div>
-      <div style={styles.contentContainer}>
-        <h2 style={styles.subtitle}>사진 고르기</h2>
+
+      {/* --- 상단 콘텐츠 (디자인 UI) --- */}
+      <div style={styles.topContentWrapper}>
+        <div style={styles.header}>
+          <div style={styles.logoContainer}>
+            <Image
+              src="/image/title.png"
+              alt="iYS Logo"
+              width={80}
+              height={40}
+              layout="responsive"
+            />
+          </div>
+          <div style={styles.titleContainer}>
+            {/* 다른 페이지와 통일성을 위해 "사진 고르기" 이미지 재사용 */}
+            <Image
+              src="/image/selectImage/selectImage.png"
+              alt="사진 고르기"
+              width={150}
+              height={40}
+              layout="responsive"
+            />
+          </div>
+        </div>
         <div style={styles.photoGrid}>
           {images.map((src, index) => (
             <div
@@ -143,24 +206,39 @@ export default function SelectFromGallery() {
                   objectFit="cover"
                 />
               ) : (
-                <span style={styles.plusIcon}>+</span>
+                <Image
+                  src="/image/selectFromGallery/button.png"
+                  alt={`slot ${index + 1}`}
+                  layout="fill"
+                  objectFit="cover"
+                />
               )}
             </div>
           ))}
         </div>
+      </div>
+
+      {/* --- 하단 버튼 (디자인 UI) --- */}
+      <div style={styles.buttonContainer}>
+        <button style={styles.secondaryButton} onClick={handleGoToHome}>
+          처음으로
+        </button>
         <button
-          style={styles.button}
+          style={{
+            ...styles.primaryButton,
+            ...(!isAllSlotsFilled ? styles.disabledButton : {}),
+          }}
           disabled={!isAllSlotsFilled}
           onClick={handleConfirm}
         >
-          선택 완료
+          다음
         </button>
       </div>
     </main>
   );
 }
 
-// 이미지 리사이징을 처리하는 헬퍼 함수
+// --- 이미지 리사이징 헬퍼 함수 - 변경 없음 ---
 function resizeImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -171,8 +249,6 @@ function resizeImage(file: File): Promise<string> {
       img.onload = () => {
         const canvas = document.createElement("canvas");
         let { width, height } = img;
-
-        // 이미지의 가로 또는 세로가 최대 크기를 초과하면, 비율을 유지하며 크기 조정
         if (width > height) {
           if (width > MAX_WIDTH_OR_HEIGHT) {
             height *= MAX_WIDTH_OR_HEIGHT / width;
@@ -191,8 +267,6 @@ function resizeImage(file: File): Promise<string> {
           return reject(new Error("2D context를 생성할 수 없습니다."));
         }
         ctx.drawImage(img, 0, 0, width, height);
-
-        // 용량이 더 작은 JPEG 형식과 퀄리티(0.9)를 지정하여 base64 데이터로 변환
         resolve(canvas.toDataURL("image/jpeg", 0.9));
       };
       img.onerror = (err) => reject(err);
